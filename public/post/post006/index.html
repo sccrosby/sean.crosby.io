@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    
+    <meta property="og:site_name" content="Sean C. Crosby">
+    <meta property="og:type" content="article">
+
+    
+    <meta property="og:image" content="https://sccrosby.github.io//img/islands.jpg">
+    <meta property="twitter:image" content="https://sccrosby.github.io//img/islands.jpg" />
+    
+
+    
+    <meta name="title" content="Making wind forecast corrections with regressions and MLP networks" />
+    <meta property="og:title" content="Making wind forecast corrections with regressions and MLP networks" />
+    <meta property="twitter:title" content="Making wind forecast corrections with regressions and MLP networks" />
+    
+
+    
+    <meta name="description" content="">
+    <meta property="og:description" content="" />
+    <meta property="twitter:description" content="" />
+    
+
+    
+    <meta property="twitter:card" content="summary" />
+    
+    
+
+    <meta name="keyword"  content="Python, Matlab, SQL, Oceanography, Machine Learning, Deep Learning, Neural Networks, Data Analysis, Inverse Theory">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>Making wind forecast corrections with regressions and MLP networks-Sean C. Crosby Blog</title>
+
+    <link rel="canonical" href="/post/post006/">
+
+    <link rel="stylesheet" href="/css/iDisqus.min.css"/>
+
+    
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    
+    <link rel="stylesheet" href="/css/hugo-theme-cleanwhite.min.css">
+
+    
+    <link rel="stylesheet" href="/css/zanshang.css">
+
+    
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet" type="text/css">
+
+    
+    
+
+    
+    
+    <script src="/js/jquery.min.js"></script>
+
+    
+    <script src="/js/bootstrap.min.js"></script>
+
+    
+    <script src="/js/hux-blog.min.js"></script>
+
+    
+    
+
+</head>
+
+
+
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Sean C. Crosby</a>
+        </div>
+
+        
+        
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+                    
+                    
+		    
+                        <li><a href="/top/about/">About</a></li>
+                    
+                        <li><a href="/top/research/">Academic Research</a></li>
+                    
+
+                    
+                </ul>
+            </div>
+        </div>
+        
+    </div>
+    
+</nav>
+<script>
+    
+    
+    
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        
+            $navbar.className = " ";
+            
+            setTimeout(function(){
+                
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+
+
+<style type="text/css">
+    header.intro-header {
+        background-image: url('/img/islands.jpg')
+    }
+</style>
+
+<header class="intro-header" >
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/data-science" title="Data Science">
+                            Data Science
+                        </a>
+                        
+                        <a class="tag" href="/tags/oceanography" title="Oceanography">
+                            Oceanography
+                        </a>
+                        
+                    </div>
+                    <h1>Making wind forecast corrections with regressions and MLP networks</h1>
+                    <h2 class="subheading"></h2>
+                    <span class="meta">
+                        
+                            Posted by 
+                            
+                                     &#34;Sean C. Crosby&#34;
+                             
+                            on 
+                            Sunday, January 2, 2022
+                            
+                            
+                            
+                            
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+<article>
+    <div class="container">
+        <div class="row">
+
+            
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                
+                <h3 id="the-idea">The idea</h3>
+<p>Recent skill improvements in meteorological and ocean forecast have been by incorporating observations into model predictions. Numerical model development, by means of improved physical representations, is in many cases suffering from diminishing returns. While ensemble approaches (many) models are useful and provide uncertainty estimates, the assimilation of ever increasing data into models is needed. The folks over at Google&rsquo;s Deep Mind more recently showed that deep neural networks could be used to accurately predict short-term (up to 90-minutes) precipitation events using prior radar observations (<a href="https://www.nature.com/articles/s41586-021-03854-z">Nature article</a>). These predictions were more accurate than the high-end, complex, numerical weather models operated by the National Weather Service. While weather models still reign supreme for longer-term forecast, accurate short-term predictions are useful by forecasters during weather extremes.</p>
+<p>Inspired in part by their success, and in part by my previous work with ocean wave forecasts (<a href="https://journals.ametsoc.org/view/journals/wefo/35/6/WAF-D-19-0254.1.xml">SWRL Net</a>), I wanted explore the idea of making short-term corrections to operational weather forecasts of both wind and waves. Because winds create waves, wave observations may therefore be useful to wind forecasts and vice-versa. So in short: <strong>Can we make better short-term forecasts by learning corrections based on recent forecasts and observations?</strong></p>
+<h3 id="the-data">The data</h3>
+<p>Floating buoys along the coast measure winds and waves. While these buoys exist all over the globe, I&rsquo;ll start with just observations on the U. S. West Coast. The buoys, owned and operated by the <a href="https://www.ndbc.noaa.gov/">National Data Buoy Center, NDBC</a>, are located below marked by the yellow pins. While the deployment lengths vary, each buoy has several years or more of data for which to use.</p>
+<p>
+  <img src="/img/mlwwcoast_buoys.png" alt="Buoy locations">
+
+</p>
+<p>A long-term model hindcast of winds and waves has been archived by the National Ocean and Atmospheric Administration (NOAA) that can be used as a proxy for operational forecasts (<a href="https://polar.ncep.noaa.gov/waves/hindcasts/">WW3 CFSR</a>). Wrangling data from both NDBC and NOAA we will then have both a set of observed winds and waves, as well as forecasts.</p>
+<h3 id="first-step">First step</h3>
+<p>To keep things simple, we will first try to improve predictions of one component of the wind field (wind is a vector), in this case the $u$ component which is the speed in the eastward direction. The formulation of the model is relatively simple, such that</p>
+<p>$$ u_t = M (u^o_{t-1}, u^f_{t-1}, u^o_a) $$</p>
+<p>where we aim to make an improved prediction, $u_t$, at time $t$ with a model, $M$, that is a function of the observed wind, $u^o$, and forecasted wind $u^f$ at the prior time step, $t-1$. Additionally we will include the daily average observed wind, $u_a$. Now it would be a little limiting to examine just the prior time-step, and so instead we can include many prior time steps, up to $T$ such that</p>
+<p>$$ u_t = M (u^o_{t-1},\ldots,u^o_{t-T}, u^f_{t-1},\ldots,u^f_{t-T}, u^o_a) $$</p>
+<p>Similarly, predicting just one time-step into the future may be too easy, and we can include several, up to future forecast time-step, $F$, such that</p>
+<p>$$ [u_t,\ldots,u_{t+F}] = M (u^o_{t-1},\ldots,u^o_{t-T}, u^f_{t-1},\ldots,u^f_{t-T}, u^o_a) $$</p>
+<p>It is worth noting one, we will use hourly time steps as that is forecasted time step in NOAA&rsquo;s hindcast, and two, that we really should work in a residual space, $u^r = u^f - u^o$, and instead develop a model for $u^r$. Nonetheless we will keep things simple for the moment, working with $u_t$ and revise the model later. Now the question becomes, what model should we use, and how well does it do?</p>
+<p>In this first pass we can look at the simplest model, the linear regression, as well a multi-layer perceptron (MLP) network with 25-layers (additional layers lead to over-fitting). Splitting the data into a train and test set (for now we will skip the dev set) we can answer the first question, how well do these models preform? Root-mean-squared errors are estimated on the test set for each buoy (y-axis) and each hour forecasted into the future (x-axis) as shown below.</p>
+<p>
+  <img src="/img/mlwwcoast_ver1_fig01.png" alt="RMSE">
+
+</p>
+<p>The left hand panel shows results for the linear regression while the right shows results for the MLP Network regression. Models have similar skills with some buoys have overall higher errors and others lower. There is a consistent trend that errors in the first few forecast hours are comparably lower. While that makes inuitive sense, there is yet, not context for these errors. The meaningful question is really, how do these errors compare to the original forecast? Surely they are not worse, are they?</p>
+<p>It seems the model was correctly implemented and we observed only improvement in RMSE. Shown below is the percentage change in RMSE between the model prediction and the original forecast.</p>
+<p>
+  <img src="/img/mlwwcoast_ver1_fig02.png" alt="RMSE difference from Numerical Model">
+
+</p>
+<p>Here, for most buoys we observe a 20-50% reduction in error for the first few forecast hours with a 0-20% reduction present in later hours. It becomes more apparent that the MLP Network is producing slightly better corrections to the forecast that tend to persist for longer. While the differences are not huge, it is good to see that the 5-hours spent training those models have yielded something positive (note the linear regressions fit in a trivial amount of time)</p>
+<p>Exactly how much improvement was observed? Well we can estimate that, again as a percentage. The MLP network appears to reduce RMSE by about 2-6 percent compared to the linear regression, with only a couple buoys and forecast hours showing worse errors. However, there is clearly room for improvement.</p>
+<p>
+  <img src="/img/mlwwcoast_ver1_fig03.png" alt="MLP difference with Linear Reg">
+
+</p>
+<h3 id="woah-lets-back-up-a-little">Woah, let&rsquo;s back up a little</h3>
+<p>So far we see that we can make some skill improvements over typical model forecasts by training on prior observations and future forecasts with a linear regression, and finding some added skill moving to a neural network, but let&rsquo;s come back to the linear problem and ask a few simpler questions, such as do we need all the inputs we are providing? Should we include the historical forecast as well? What does each part of the feature puzzle bring us in terms of skill as a function of forecast hour?</p>
+<p>To take a look at these questions I&rsquo;ve created several linear models with varying inputs, ranging from just the yearly average, to including both the historical forecast, historical observations, and future forecast. Now the plots below shows all these combinations with the right plot just a zoom in on the y-axis to see the differences between the best models a little more clearly.</p>
+<p>
+  <img src="/img/mlwwcoast_ver2_fig01.png" alt="Linear regression with varying inputs">
+
+</p>
+<p>Let&rsquo;s start with the worst models. First training with just the yearly average estimate does a poor job, to no surprise with an error of about 3.9 m/s. This is a far cry from the original forecast error around 1.72 m/s (black line). Now similarly bad is the model trained on the history forecast residuals. By residuals I mean the errors in the forecast in the last 24-hours, e.g. forecast - observations. This at first seems surprising, but the model has little context for which to learn from just the past errors with no reference to the current wind speed magnitude at all. You really can&rsquo;t do much with the error term alone. Now the next thing to try is just the observations (orange). Here, we have good skill at forecast hour 1 and 2, with skill much worse in the preceding hours. Again, this is intuitive as the model probably is guessing that wind conditions are similar to the latest hour, which works for a short time.</p>
+<p>Now, what about just providing the model future forecasts? In this case we see a relatively constant RMSE around 1.5 m/s. This is not surprising as we created mock forecast from hindcast that therefore have similar skill for all forecast hours, however, what is surprising is that this skill is higher than the forest itself, and higher than the bias-removed forecast. Clearly some averaging is happening here that is helpful.</p>
+<p>Now, we start to see how our more general linear model starts to put together the pieces. By including both prior observations and future forecasts we get a combination of improvement at early hours and at later forecast hours. Various combinations of observations, history forecast residuals, and future forecast hours result in similar curves, with best results given the larger number of parameters. We are not necessarily over-fitting, however, because these results are derived from the test set.</p>
+<p>Since we have a linear model we can explore it&rsquo;s coefficients relatively easily. What of these inputs are actually useful? First let&rsquo;s just consider the relatively simpler linear regression with historical observations and future forecasts. Taking a look at the coefficients (here negatives are historical observations, positives the forecast hours) we see a relatively inutitive set of coefficients for various forecast predictions.</p>
+<p>
+  <img src="/img/mlwwcoast_ver2_fig02.png" alt="Linear regression with varying inputs">
+
+</p>
+<p>Here for forecast hour 1 the coeficient of hour 0, the latest observation, is 0.65, or in other words, the regression would like 65% of this hour followed by a little bit of the most recent forecasts. For later forecasts we see less reliance on the latest observation and more reliance on the forecast hours nearby those forecast hours themselves. Now a linear regression with an L1 penalty and a little regularization shows us which coefficients are actually useful.</p>
+<p>
+  <img src="/img/mlwwcoast_ver2_fig03.png" alt="Linear regression with varying inputs">
+
+</p>
+<p>Here, we see that indeed the model cares only for the latest observation, the first forecast hour, and then an average of the forecast hours surrounding the desired prediction forecast. The shape of this averaging is relatively consistent and interestingly asymmetric. This is actually the preferred averaging window that should, in theory, improve the forecasts! Interesting, and I wonder how it might vary from observation location to observation location. What is also quite surprising is that earlier observations are not useful.</p>
+<p>Now that we explored the linear regression in a bit more detail let&rsquo;s go back to the multi-layer-perceptron model (aka neural net) and start with the inputs from our best linear model, that is observations + historical forecast + future forecast. I think we can conclude that the average daily wind speed was not useful. Using default settings that include RELU activation, adam for the solver, a small amount of regularization (.0001) let&rsquo;s try varying the amount of layers and their nodes. While training becomes a bit slow (about 5-minutes for the largest network) we can see clearly that deeper networks with an increasing number of nodes appear to reduce RMSE, increasing prediction skill. And this improvement is relatively constant across forecast hour, which is a pleasant surprise suggesting that possibly we should consider predicting farther than 24-hours out. What is also clear is that the models are indeed over-fitting as training errors are much lower than test errors.</p>
+<p>
+  <img src="/img/mlwwcoast_ver2_fig04.png" alt="Linear regression with varying inputs">
+
+</p>
+<h3 id="next-steps">Next steps</h3>
+<p>This cursory examination suggests there is potential to reduce forecast errors and several avenues for further exploration including</p>
+<ul>
+<li>Examine linear coefficients for a model with history forecast as well (or residuals)</li>
+<li>Explore regularization and/or other approaches to reducing over-fitting with MLP</li>
+<li>Split into train-dev-test, and consider splitting by dates to avoid potential overlap</li>
+<li>Modeling $u$ and $v$ wind components together</li>
+<li>Adding wave forecast and observations to model inputs</li>
+<li>Scaling inputs if adding wave and observations</li>
+<li>Determine if MLPRegressor is automatically scaling, as it should be expecting 0-1 as inputs right?</li>
+<li>Consider grid search or other random search for optimal hyper-parameters.</li>
+<li>Exploring additional model architectures such as recurrent neural-nets</li>
+</ul>
+<p>If you have ideas, send me an email!</p>
+ <script type="text/javascript"
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\[','\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});
+</script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    // Fix <code> tags after MathJax finishes running. This is a
+    // hack to overcome a shortcoming of Markdown. Discussion at
+    // https://github.com/mojombo/jekyll/issues/199
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+});
+</script><blockquote>
+</blockquote>
+
+
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/post/post005/" data-toggle="tooltip" data-placement="top" title="Can we visualize decision space for different classifiers?">&larr;
+                            Previous Post</a>
+                    </li>
+                    
+                    
+                </ul>
+                
+<div id="disqus-comment"></div>
+
+
+            </div>
+
+            
+            
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+            
+
+            
+            <div class="
+                col-lg-11 col-lg-offset-1
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                
+                
+                <section>
+                    <hr class="hidden-sm hidden-xs">
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                        
+                        
+                        
+                        
+                        
+                        <a href="/tags/data-science" title="data-science">
+                            data-science
+                        </a>
+                        
+                        
+                        
+                        <a href="/tags/oceanography" title="oceanography">
+                            oceanography
+                        </a>
+                        
+                        
+                        
+                        
+                    </div>
+                </section>
+                
+
+                
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                   
+                   <li>
+                       <a href='' rel="alternate" type="application/rss+xml" title="Sean C. Crosby" >
+                           <span class="fa-stack fa-lg">
+                               <i class="fas fa-circle fa-stack-2x"></i>
+                               <i class="fas fa-rss fa-stack-1x fa-inverse"></i>
+                           </span>
+                       </a>
+                   </li>
+                   
+                    
+                    <li>
+                        <a href="mailto:schcrosby@gmail.com">
+                            <span class="fa-stack fa-lg">
+                                <i class="fas fa-circle fa-stack-2x"></i>
+                                <i class="fas fa-envelope fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+		    
+
+                    
+                    
+                    
+
+                    
+
+		    
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/sccrosby">
+                            <span class="fa-stack fa-lg">
+                                <i class="fas fa-circle fa-stack-2x"></i>
+                                <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+		    
+                    
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://www.linkedin.com/in/seanchcrosby/">
+                            <span class="fa-stack fa-lg">
+                                <i class="fas fa-circle fa-stack-2x"></i>
+                                <i class="fab fa-linkedin fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+		    
+                    
+                    
+                    
+                    
+                    
+            
+            
+            
+                </ul>
+		<p class="copyright text-muted">
+                    Copyright &copy; Sean C. Crosby 2023
+                    <br>
+                    <a href="https://themes.gohugo.io/hugo-theme-cleanwhite">CleanWhite Hugo Theme</a> by <a href="https://zhaohuabing.com">Huabing</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=zhaohuabing&repo=hugo-theme-cleanwhite&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+
+
+<script>
+    function loadAsync(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+
+
+
+
+
+<script>
+    
+    if($('#tag_cloud').length !== 0){
+        loadAsync("/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+
+<script>
+    loadAsync("https://cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-211277851-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+<script type="text/javascript">
+    function generateCatalog(selector) {
+
+        
+        
+        
+        
+            _containerSelector = 'div.post-container'
+        
+
+        
+        var P = $(_containerSelector), a, n, t, l, i, c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        
+        $(selector).html('')
+
+        
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#" + $(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="' + i + '" rel="nofollow">' + t + '</a>');
+            l = $('<li class="' + n + '_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    
+    $(".catalog-toggle").click((function (e) {
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    
+
+
+    loadAsync("\/js\/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+</body>
+</html>
