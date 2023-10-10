@@ -11,7 +11,7 @@ googleAnalytics = "UA-211277851-1"
 
 [params]
   #header_image = "images/main_go_wideandtall_darklayer.jpeg"
-  header_image = "/img/islands.jpg"
+  header_image = "/img/trees_revised.jpg"
   title = "Data Science"
   slogan = ""
   SEOTitle = "Sean C. Crosby Blog"
