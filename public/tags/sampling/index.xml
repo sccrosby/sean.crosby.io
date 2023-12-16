@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Sampling on Sean C. Crosby</title>
+    <link>https://sccrosby.github.io/tags/sampling/</link>
+    <description>Recent content in Sampling on Sean C. Crosby</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 08 Oct 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://sccrosby.github.io/tags/sampling/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Sampling for Maximum Dissimilarity</title>
+      <link>https://sccrosby.github.io/post/post007/</link>
+      <pubDate>Sun, 08 Oct 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://sccrosby.github.io/post/post007/</guid>
+      <description>Sampling Sampling data can be done in many ways depending on what is desired. Most often a random uniform sampling is used to collect a small subset for preliminary analysis. This can reduce computation and provide rapid insight. There are, however, other reasons to sample data, such as create a representative sample set that covers the data range.
+A particular example arises in earth sciences when the goal is to model weather or ocean conditions across the range of possible forcing.</description>
+    </item>
+    
+  </channel>
+</rss>

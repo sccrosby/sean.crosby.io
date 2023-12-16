@@ -1,6 +1,6 @@
 ---
-title:       "Making wind forecast corrections with regressions and MLP networks"
-subtitle:    ""
+title:       "Making wind forecast corrections with ML"
+subtitle:    "Using multi-layer perceptrons to create non-linear forecast corrections"
 description: ""
 date:        2022-01-02
 author:      "Sean C. Crosby"

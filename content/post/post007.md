@@ -1,11 +1,11 @@
 ---
-title:       "Sampling for Maximum Dissilarity"
+title:       "Sampling for Maximum Dissimilarity"
 subtitle:    "Creating a subsample of data that covers your N-dimensional space"
 description: ""
 date:        2023-10-08
 author:      "Sean C. Crosby"
 image:       ""
-tags:        ["Data Science"]
+tags:        ["Data Science", "Sampling"]
 categories:  []
 draft:       false
 ---

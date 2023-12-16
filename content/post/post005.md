@@ -1,6 +1,6 @@
 ---
 title:       "Can we visualize decision space for different classifiers?"
-subtitle:    "Visualizing decision space for simple to complex methods of classification with a toy dataset. We'll find that decision model boundaries will vary widely depending on model implementation and model settings, providing some intuition for classifier selection"
+subtitle:    "Visualizing decision space from simple to complex classifiers"
 description: ""
 date:        2021-12-28
 author:      "Sean C. Crosby"

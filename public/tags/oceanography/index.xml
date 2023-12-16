@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Oceanography on Sean C. Crosby</title>
+    <link>https://sccrosby.github.io/tags/oceanography/</link>
+    <description>Recent content in Oceanography on Sean C. Crosby</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 02 Jan 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://sccrosby.github.io/tags/oceanography/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Making wind forecast corrections with ML</title>
+      <link>https://sccrosby.github.io/post/post006/</link>
+      <pubDate>Sun, 02 Jan 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://sccrosby.github.io/post/post006/</guid>
+      <description>The idea Recent skill improvements in meteorological and ocean forecast have been by incorporating observations into model predictions. Numerical model development, by means of improved physical representations, is in many cases suffering from diminishing returns. While ensemble approaches (many) models are useful and provide uncertainty estimates, the assimilation of ever increasing data into models is needed. The folks over at Google&amp;rsquo;s Deep Mind more recently showed that deep neural networks could be used to accurately predict short-term (up to 90-minutes) precipitation events using prior radar observations (Nature article).</description>
+    </item>
+    
+    <item>
+      <title>Dominant wind field patterns from complex empirical orthogonal functions</title>
+      <link>https://sccrosby.github.io/post/post002/</link>
+      <pubDate>Tue, 23 Nov 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://sccrosby.github.io/post/post002/</guid>
+      <description>Today I was wondering if I can make some sense of a rather large 60-year hindcast of winds in Washington around the Salish Sea. Could I see what the typical wind patterns in the region are? How can I manage this with a rather hefty 1+GB set of spatial wind predictions? This is a good opportunity to explore empirical orthogonal functions (EOFs), also known as principle component analysis (PCA).</description>
+    </item>
+    
+    <item>
+      <title>Ocean wave transformation with ray-path tracing</title>
+      <link>https://sccrosby.github.io/post/post003/</link>
+      <pubDate>Sun, 17 Oct 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://sccrosby.github.io/post/post003/</guid>
+      <description>Ray tracing Ray-tracing is a common tool in many fields from Magnetic resonance imaging (MRI) to ocean acoustics. In fact ocean acoustics are frequently employed to study whale and porpoise populations as well as detect boats or submarines. The concept is relatively simple, a wave traveling through a medium will bend or refract as its speed in the medium changes. And this is true for ocean waves, the ones you commonly see arriving at the shoreline.</description>
+    </item>
+    
+  </channel>
+</rss>
